@@ -31,7 +31,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
             self.say("Sorry, service `%`s already exists." % service, message=message)
             return
 
-        self.say("Ok. Adding service `%s.`" % service, message=message)
+        self.say("Ok. Adding service `%s`." % service, message=message)
         self.push(self.REDIS_KEY, service)
 
 
