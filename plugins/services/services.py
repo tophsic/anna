@@ -3,11 +3,13 @@ from will.decorators import respond_to, periodic, hear, randomly, route, rendere
 from will.storage.redis_storage import RedisStorage
 
 from mixins import ExtendedStorageMixin
+from mixins import QuestionsMixin
+from mixins import Question
 
 import logging
 
 
-class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
+class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
@@ -52,8 +54,13 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
             self.say("Sorry, service `%s` does not exist." % service, message=message)
             return
 
-        self.say("Ok. Removing service `%s`." % service, message=message)
-        self.trim(self.REDIS_KEY, service)
+        self.say("Are you sure you want to remove service %s?" %service, message=message)
+
+        self.add_question(Question(message=message, callback=self._remove_service, item=service))
+
+    def _remove_service(self, message, item):
+        self.say("Ok. Removing service `%s`." % item, message=message)
+        self.trim(self.REDIS_KEY, item)
 
 
 
