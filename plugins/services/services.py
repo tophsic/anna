@@ -17,6 +17,8 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
 
     @respond_to("^Add service (?P<service>.*)", admin_only=True)
     def add_service(self, message, service=None):
+        """Add service ____: add a new service."""
+
         self.bootstrap_extended_storage()
 
         if not service:
@@ -36,6 +38,8 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
 
     @respond_to("^Remove service (?P<service>.*)", admin_only=True)
     def remove_service(self, message, service=None):
+        """Remove service ____: remove an defined service."""
+
         self.bootstrap_extended_storage()
 
         if not service:
@@ -55,6 +59,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
 
     @respond_to("^Give me all services")
     def list_services(self, message):
+        """Give me all services: list defined services."""
         self.bootstrap_extended_storage()
 
         servicesLen = self.len(self.REDIS_KEY)
@@ -67,6 +72,8 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin):
 
     @respond_to("^Redis?")
     def is_redis_here(self, message, admin_only=True):
+        """Redis?: is Redis available?"""
+        self.bootstrap_extended_storage()
         self.bootstrap_extended_storage()
 
         self.say("Redis is available", message=message)
