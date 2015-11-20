@@ -1,0 +1,8 @@
+*.py[cod]
+pip-log.txt
+shelf.db
+/.tox/
+*.egg-info
+Procfile
+.env
+.cache
