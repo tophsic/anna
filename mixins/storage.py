@@ -30,6 +30,9 @@ class ExtendedStorageMixin(object):
 
 
     def range(self, key, start, stop):
+        if not self.storage.redis.exists(key):
+            return list()
+
         return self.storage.redis.lrange(self.REDIS_KEY, start, stop)
 
 
