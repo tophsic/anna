@@ -14,6 +14,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
     REDIS_KEY = "services"
+    REDIS_LOCK_KEY = "services_locked"
 
 
 
@@ -76,6 +77,18 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
+    @respond_to("^Give me all locked services")
+    def list_locked_services(self, message):
+        """Give me all locked services: list locked services."""
+        self.bootstrap_extended_storage()
+
+        services = self._locked_services()
+
+        self.say("%d services are locked:\n"
+                 "%s" % (len(services), ", ".join(services)), message=message)
+
+
+
     @respond_to("^Redis?")
     def is_redis_here(self, message, admin_only=True):
         """Redis?: is Redis available?"""
@@ -85,5 +98,64 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
+    @respond_to("^Can I take (?P<service>.*)\?$")
+    def can_i_take(self, message, service=None):
+        """Can I take ____?: lock a service"""
+        self.bootstrap_extended_storage()
+
+        if not service:
+            self.say("Sorry, you didn't say what service to add.", message=message)
+            return
+
+        services = self._services()
+
+        if not service in services:
+            self.say("Sorry, service `%s` does not exist." % service, message=message)
+            return
+
+        locked_services = self._locked_services()
+
+        if service in locked_services:
+            self.say("Sorry, service `%s` is already locked." % service, message=message)
+            return
+
+        self.say("Sure @%s, you can take service %s" % (message.sender.nick, service), message=message)
+        self.push(self.REDIS_LOCK_KEY, service)
+
+
+
+
+    @respond_to("^I unlock (?P<service>.*)")
+    def unlock_service(self, message, service=None):
+        """I unlock ____?: unlock a service"""
+        self.bootstrap_extended_storage()
+
+        if not service:
+            self.say("Sorry, you didn't say what service to add.", message=message)
+            return
+
+        services = self._services()
+
+        if not service in services:
+            self.say("Sorry, service `%s` does not exist." % service, message=message)
+            return
+
+        locked_services = self._locked_services()
+
+        if not service in locked_services:
+            self.say("Sorry, service `%s` is not already." % service, message=message)
+            return
+
+        self.say("@all, @%s unlock service %s" % (message.sender.nick, service), message=message)
+        self.trim(self.REDIS_LOCK_KEY, service)
+
+
+
+
     def _services(self):
         return self.range(self.REDIS_KEY, 0, -1)
+
+
+
+    def _locked_services(self):
+        return self.range(self.REDIS_LOCK_KEY, 0, -1)
