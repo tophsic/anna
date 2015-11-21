@@ -27,7 +27,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             self.say("Sorry, you didn't say what service to add.", message=message)
             return
 
-        services = self.range(self.REDIS_KEY, 0, -1)
+        services = self._services()
 
         if service in services:
             self.say("Sorry, service `%`s already exists." % service, message=message)
@@ -69,11 +69,10 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
         """Give me all services: list defined services."""
         self.bootstrap_extended_storage()
 
-        servicesLen = self.len(self.REDIS_KEY)
-        services = self.range(self.REDIS_KEY, 0, -1)
+        services = self._services()
 
         self.say("%d services are defined:\n"
-                 "%s" % (servicesLen, ", ".join(services)), message=message)
+                 "%s" % (len(services), ", ".join(services)), message=message)
 
 
 
@@ -81,6 +80,10 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
     def is_redis_here(self, message, admin_only=True):
         """Redis?: is Redis available?"""
         self.bootstrap_extended_storage()
-        self.bootstrap_extended_storage()
 
         self.say("Redis is available", message=message)
+
+
+
+    def _services(self):
+        return self.range(self.REDIS_KEY, 0, -1)
