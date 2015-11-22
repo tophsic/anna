@@ -12,15 +12,15 @@ class QuestionsMixin(object):
 
 
     def add_question(self, question):
-        author = question.author
+        receiver = question.receiver
+        if not self.questions.has_key(receiver):
+            self.questions[receiver] = list()
 
-        if not self.questions.has_key(author):
-            self.questions[author] = list()
-
-        self.questions[author].append(question)
+        question.onPop(self.pop)
+        self.questions[receiver].append(question)
 
 
-    @respond_to("(?P<answer>yes|no)",)
+    @respond_to("(?P<answer>yes|no)")
     def listen(self, message, answer):
         author = message.sender.nick
 
@@ -32,23 +32,57 @@ class QuestionsMixin(object):
         if len(questions) == 0:
             return
 
-        question = questions.pop()
-        question.resolve(self, message, answer)
+        question = questions[len(questions) - 1]
+        question.answer(self, message, answer)
 
 
+
+    @respond_to("@all (?P<answer>yes|no)")
+    def listen_all(self, message, answer):
+        author = message.sender.nick
+
+        if not self.questions.has_key('all'):
+            return
+
+        questions = self.questions['all']
+
+        if len(questions) == 0:
+            return
+
+        question = questions[len(questions) - 1]
+        question.answer(self, message, answer)
+
+    def pop(self, receiver):
+        self.questions[receiver].pop()
 
 
 class Question(object):
 
-    def __init__(self, message, callback, item):
+    def __init__(self, message, arguments, yes_callback=None, no_callback=None, receiver=None):
         self.message = message
         self.author = message.sender.nick
-        self.callback = callback
-        self.item = item
+        self.arguments = arguments
+        self.yes_callback = yes_callback
+        self.no_callback = no_callback
+        self.receiver = receiver
+        if not self.receiver:
+            self.receiver = self.author
+        self.pop_callbacks = list()
 
-    def resolve(self, caller, message, answer):
-        if answer == 'yes':
-            self.callback(message, self.item)
-            return
+    def answer(self, caller, message, answer):
+        callback = None
 
-        caller.say("Ok. I did nothing", message=message)
+        if answer == 'yes' and self.yes_callback:
+            callback = self.yes_callback
+
+        if answer == 'no' and self.no_callback:
+            callback = self.no_callback
+
+        if callback:
+            callback(self, message, self.arguments)
+
+        for pop_callback in self.pop_callbacks:
+            pop_callback(self.receiver)
+
+    def onPop(self, callback):
+        self.pop_callbacks.append(callback)

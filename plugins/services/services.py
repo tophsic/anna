@@ -7,6 +7,8 @@ from mixins import QuestionsMixin
 from mixins import Question
 
 import logging
+import threading
+import datetime
 
 
 class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
@@ -18,6 +20,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
+    # Add service {{{
     @respond_to("^Add service (?P<service>.*)", admin_only=True)
     def add_service(self, message, service=None):
         """Add service ____: add a new service."""
@@ -36,9 +39,11 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
         self.say("Ok. Adding service `%s`." % service, message=message)
         self.push(self.REDIS_KEY, service)
+    # }}}
 
 
 
+    # Remove service {{{
     @respond_to("^Remove service (?P<service>.*)", admin_only=True)
     def remove_service(self, message, service=None):
         """Remove service ____: remove an defined service."""
@@ -55,16 +60,30 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             self.say("Sorry, service `%s` does not exist." % service, message=message)
             return
 
-        self.say("Are you sure you want to remove service %s?" %service, message=message)
+        self.say("@%s, are you sure you want to remove service %s?" % (message.sender.nick, service), message=message)
 
-        self.add_question(Question(message=message, callback=self._remove_service, item=service))
+        arguments = dict()
+        arguments['service'] = service
+        question = Question(message=message, yes_callback=self._remove_service, no_callback=self._no_remove_service, arguments=arguments)
+        self.add_question(question)
 
-    def _remove_service(self, message, item):
-        self.say("Ok. Removing service `%s`." % item, message=message)
-        self.trim(self.REDIS_KEY, item)
+    def _remove_service(self, question, message, arguments):
+        if not arguments.has_key('service'):
+            return
+
+        self.say("Ok @%s. Removing service `%s`." % (message.sender.nick, arguments['service']), message=message)
+        self.trim(self.REDIS_KEY, argument['service'])
+
+    def _no_remove_service(self, question, message, arguments):
+        if not arguments.has_key('service'):
+            return
+
+        self.say("Ok @%s. I am not removing service `%s`." % (message.sender.nick, arguments['service']), message=message)
+    # }}}
 
 
 
+    # Give me {{{
     @respond_to("^Give me all services")
     def list_services(self, message):
         """Give me all services: list defined services."""
@@ -86,6 +105,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
         self.say("%d services are locked:\n"
                  "%s" % (len(services), ", ".join(services)), message=message)
+    # }}}
 
 
 
@@ -98,6 +118,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
+    # Lock a service {{{
     @respond_to("^Can I take (?P<service>.*)\?$")
     def can_i_take(self, message, service=None):
         """Can I take ____?: lock a service"""
@@ -119,9 +140,30 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             self.say("Sorry, service `%s` is already locked." % service, message=message)
             return
 
-        self.say("Sure @%s, you can take service %s" % (message.sender.nick, service), message=message)
-        self.push(self.REDIS_LOCK_KEY, service)
+        self.say("Hey @all, @%s wants to lock service %s, is that ok for you?" % (message.sender.nick, service), message=message)
 
+        arguments = dict()
+        arguments['service'] = service
+        question = LockServiceQuestion(
+            message=message,
+            no_callback=self._no_lock_service,
+            yes_callback=self._lock_service,
+            arguments=arguments
+            )
+        self.add_question(question)
+
+    def _lock_service(self, question, message, arguments):
+        if not arguments.has_key('service'):
+            return
+
+        self.say("Sure @%s, you can take service %s" % (message.sender.nick, arguments['service']), message=message)
+        self.push(self.REDIS_LOCK_KEY, arguments['service'])
+
+    def _no_lock_service(self, question, message, arguments):
+        if not arguments.has_key('service'):
+            return
+
+        self.say("@%s, you can not take service %s, see @%s" % (question.message.sender.nick, arguments['service'], message.sender.nick), message=message)
 
 
 
@@ -148,6 +190,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
         self.say("@all, @%s unlock service %s" % (message.sender.nick, service), message=message)
         self.trim(self.REDIS_LOCK_KEY, service)
+    # }}}
 
 
 
@@ -159,3 +202,52 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
     def _locked_services(self):
         return self.range(self.REDIS_LOCK_KEY, 0, -1)
+
+
+
+
+
+
+class LockServiceQuestion(Question):
+
+    STATUS_PENDING = "pending"
+    STATUS_NO = "no"
+    STATUS_END = "end"
+
+    WAITING = 10
+
+    def __init__(self, message, arguments, yes_callback=None, no_callback=None, receiver=None):
+        Question.__init__(self, message, arguments, yes_callback, no_callback, receiver)
+
+        self.status = self.STATUS_PENDING
+
+        thread = threading.Thread(target=self.waiting)
+        thread.start()
+
+    def answer(self, caller, message, answer):
+        callback = None
+
+        if answer == 'no' and self.no_callback:
+            self.status = self.STATUS_NO
+            callback = self.no_callback
+
+        if callback:
+            callback(self, message, self.arguments)
+
+    def waiting(self):
+
+        startTime = datetime.datetime.now()
+
+        while self.status != self.STATUS_NO and self.status != self.STATUS_END:
+            time = datetime.datetime.now()
+            delta = time - startTime
+
+            if delta.total_seconds() > self.WAITING:
+                self.status = self.STATUS_END
+
+        if self.status == self.STATUS_END and self.yes_callback:
+            self.yes_callback(self, self.message, self.arguments)
+
+
+        for pop_callback in self.pop_callbacks:
+            pop_callback(self.receiver)
