@@ -227,6 +227,9 @@ class LockServiceQuestion(Question):
     def answer(self, caller, message, answer):
         callback = None
 
+        if self.status == self.STATUS_END:
+            return
+
         if answer == 'no' and self.no_callback:
             self.status = self.STATUS_NO
             callback = self.no_callback
