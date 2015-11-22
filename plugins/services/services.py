@@ -89,7 +89,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
-    @respond_to("^Redis?")
+    @respond_to("^Redis\?")
     def is_redis_here(self, message, admin_only=True):
         """Redis?: is Redis available?"""
         self.bootstrap_extended_storage()
