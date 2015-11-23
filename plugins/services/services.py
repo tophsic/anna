@@ -21,7 +21,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
     # Add service {{{
-    @respond_to("^Add service (?P<service>.*)", admin_only=True)
+    @respond_to("^Add service (?P<service>.*)", acl=['service_managers'])
     def add_service(self, message, service=None):
         """Add service ____: add a new service."""
 
@@ -44,7 +44,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
     # Remove service {{{
-    @respond_to("^Remove service (?P<service>.*)", admin_only=True)
+    @respond_to("^Remove service (?P<service>.*)", acl=['service_managers'])
     def remove_service(self, message, service=None):
         """Remove service ____: remove an defined service."""
 
@@ -110,7 +110,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
     @respond_to("^Redis\?")
-    def is_redis_here(self, message, admin_only=True):
+    def is_redis_here(self, message):
         """Redis?: is Redis available?"""
         self.bootstrap_extended_storage()
 
