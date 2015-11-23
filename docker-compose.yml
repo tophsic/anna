@@ -1,0 +1,13 @@
+redis:
+  image: redis:3
+
+anna:
+  build: .
+  links:
+    - redis
+  environment:
+    - WILL_REDIS_URL=redis://redis:6379/7
+    - HIPCHAT_SERVER=chat.hipchat.com
+    - WILL_USERNAME
+    - WILL_PASSWORD
+    - WILL_V2_TOKEN
