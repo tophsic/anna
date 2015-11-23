@@ -34,7 +34,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
         services = self._services()
 
         if service in services:
-            self.say("Sorry, service `%`s already exists." % service, message=message)
+            self.say("Sorry, service `%s` already exists." % service, message=message)
             return
 
         self.say("Ok. Adding service `%s`." % service, message=message)
