@@ -1,8 +1,10 @@
 redis:
   image: redis:3
+  restart: always
 
 anna:
   build: .
+  restart: always
   links:
     - redis
   environment:
