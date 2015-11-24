@@ -6,7 +6,6 @@ from mixins import ExtendedStorageMixin
 from mixins import QuestionsMixin
 from mixins import Question
 
-import logging
 import threading
 import datetime
 
