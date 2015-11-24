@@ -6,3 +6,4 @@ shelf.db
 Procfile
 .env
 .cache
+config.py
