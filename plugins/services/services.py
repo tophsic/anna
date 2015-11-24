@@ -60,7 +60,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             self.say("Sorry, service `%s` does not exist." % service, message=message)
             return
 
-        self.say("@%s, are you sure you want to remove service %s?" % (message.sender.nick, service), message=message)
+        self.say("@%s, are you sure you want to remove service %s?" % (message.sender.name, service), message=message)
 
         arguments = dict()
         arguments['service'] = service
@@ -71,14 +71,14 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
         if not arguments.has_key('service'):
             return
 
-        self.say("Ok @%s. Removing service `%s`." % (message.sender.nick, arguments['service']), message=message)
+        self.say("Ok @%s. Removing service `%s`." % (message.sender.name, arguments['service']), message=message)
         self.trim(self.REDIS_KEY, argument['service'])
 
     def _no_remove_service(self, question, message, arguments):
         if not arguments.has_key('service'):
             return
 
-        self.say("Ok @%s. I am not removing service `%s`." % (message.sender.nick, arguments['service']), message=message)
+        self.say("Ok @%s. I am not removing service `%s`." % (message.sender.name, arguments['service']), message=message)
     # }}}
 
 
@@ -140,7 +140,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             self.say("Sorry, service `%s` is already locked." % service, message=message)
             return
 
-        self.say("Hey @all, @%s wants to lock service %s, is that ok for you?" % (message.sender.nick, service), message=message)
+        self.say("Hey @all, @%s wants to lock service %s, is that ok for you?" % (message.sender.name, service), message=message)
 
         arguments = dict()
         arguments['service'] = service
@@ -156,14 +156,14 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
         if not arguments.has_key('service'):
             return
 
-        self.say("Sure @%s, you can take service %s" % (message.sender.nick, arguments['service']), message=message)
+        self.say("Sure @%s, you can take service %s" % (message.sender.name, arguments['service']), message=message)
         self.push(self.REDIS_LOCK_KEY, arguments['service'])
 
     def _no_lock_service(self, question, message, arguments):
         if not arguments.has_key('service'):
             return
 
-        self.say("@%s, you can not take service %s, see @%s" % (question.message.sender.nick, arguments['service'], message.sender.nick), message=message)
+        self.say("@%s, you can not take service %s, see @%s" % (question.message.sender.name, arguments['service'], message.sender.name), message=message)
 
 
 
@@ -188,7 +188,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             self.say("Sorry, service `%s` is not already." % service, message=message)
             return
 
-        self.say("@all, @%s unlock service %s" % (message.sender.nick, service), message=message)
+        self.say("@all, @%s unlock service %s" % (message.sender.name, service), message=message)
         self.trim(self.REDIS_LOCK_KEY, service)
     # }}}
 

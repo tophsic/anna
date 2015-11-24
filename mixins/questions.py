@@ -60,7 +60,7 @@ class Question(object):
 
     def __init__(self, message, arguments, yes_callback=None, no_callback=None, receiver=None):
         self.message = message
-        self.author = message.sender.nick
+        self.author = message.sender.name
         self.arguments = arguments
         self.yes_callback = yes_callback
         self.no_callback = no_callback
