@@ -147,7 +147,8 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
             message=message,
             no_callback=self._no_lock_service,
             yes_callback=self._lock_service,
-            arguments=arguments
+            arguments=arguments,
+            receiver='all'
             )
         self.add_question(question)
 

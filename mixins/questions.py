@@ -20,37 +20,29 @@ class QuestionsMixin(object):
         self.questions[receiver].append(question)
 
 
+
     @respond_to("(?P<answer>yes|no)")
-    def listen(self, message, answer):
-        author = message.sender.nick
-
-        if not self.questions.has_key(author):
+    def listen_yes_no(self, message, answer):
+        answerAll = self._listen_yes_no('all', message, answer)
+        if answerAll:
             return
 
-        questions = self.questions[author]
+        author = message.sender.name
+        self._listen_yes_no(author, message, answer)
+
+    def _listen_yes_no(self, name, message, answer):
+        if not self.questions.has_key(name):
+            return False
+
+        questions = self.questions[name]
 
         if len(questions) == 0:
-            return
+            return False
 
         question = questions[len(questions) - 1]
         question.answer(self, message, answer)
 
-
-
-    @respond_to("@all (?P<answer>yes|no)")
-    def listen_all(self, message, answer):
-        author = message.sender.nick
-
-        if not self.questions.has_key('all'):
-            return
-
-        questions = self.questions['all']
-
-        if len(questions) == 0:
-            return
-
-        question = questions[len(questions) - 1]
-        question.answer(self, message, answer)
+        return True
 
     def pop(self, receiver):
         self.questions[receiver].pop()
