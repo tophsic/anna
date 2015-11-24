@@ -1,4 +1,6 @@
 from will.plugin import WillPlugin
+from will import settings
+from will.decorators import require_settings
 from will.decorators import respond_to
 from will.storage.redis_storage import RedisStorage
 
@@ -118,6 +120,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
     # Lock a service {{{
+    @require_settings("SERVICE_LOCK_DELAY",)
     @respond_to("^Can I take (?P<service>.*)\?$")
     def can_i_take(self, message, service=None):
         """Can I take ____?: lock a service"""
@@ -214,8 +217,6 @@ class LockServiceQuestion(Question):
     STATUS_NO = "no"
     STATUS_END = "end"
 
-    WAITING = 10
-
     def __init__(self, message, arguments, yes_callback=None, no_callback=None, receiver=None):
         Question.__init__(self, message, arguments, yes_callback, no_callback, receiver)
 
@@ -245,7 +246,7 @@ class LockServiceQuestion(Question):
             time = datetime.datetime.now()
             delta = time - startTime
 
-            if delta.total_seconds() > self.WAITING:
+            if delta.total_seconds() > settings.SERVICE_LOCK_DELAY:
                 self.status = self.STATUS_END
 
         if self.status == self.STATUS_END and self.yes_callback:
