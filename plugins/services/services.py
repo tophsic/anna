@@ -83,7 +83,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
     # Give me {{{
-    @respond_to("^Give me all services")
+    @respond_to("^(Give me )?all services")
     def list_services(self, message):
         """Give me all services: list defined services."""
         self.bootstrap_extended_storage()
@@ -95,7 +95,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
-    @respond_to("^Give me all locked services")
+    @respond_to("^(Give me )?locked services")
     def list_locked_services(self, message):
         """Give me all locked services: list locked services."""
         self.bootstrap_extended_storage()
@@ -166,7 +166,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
 
 
 
-    @respond_to("^I unlock (?P<service>.*)")
+    @respond_to("^(I )?unlock (?P<service>.*)")
     def unlock_service(self, message, service=None):
         """I unlock ____?: unlock a service"""
         self.bootstrap_extended_storage()
