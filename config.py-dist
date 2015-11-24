@@ -135,4 +135,6 @@ HTTPSERVER_PORT = "9000"
 # Logging level
 # LOGLEVEL = "DEBUG"
 
-    
+# Anna
+# Time to answer service lock question
+SERVICE_LOCK_DELAY=10
