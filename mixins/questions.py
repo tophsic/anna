@@ -27,7 +27,7 @@ class QuestionsMixin(object):
         if answerAll:
             return
 
-        author = message.sender.name
+        author = message.sender.nick
         self._listen_yes_no(author, message, answer)
 
     def _listen_yes_no(self, name, message, answer):
@@ -52,7 +52,7 @@ class Question(object):
 
     def __init__(self, message, arguments, yes_callback=None, no_callback=None, receiver=None):
         self.message = message
-        self.author = message.sender.name
+        self.author = message.sender.nick
         self.arguments = arguments
         self.yes_callback = yes_callback
         self.no_callback = no_callback
