@@ -184,7 +184,7 @@ class ServicesPlugin(WillPlugin, ExtendedStorageMixin, QuestionsMixin):
         locked_services = self._locked_services()
 
         if not service in locked_services:
-            self.say("Sorry, service `%s` is not already." % service, message=message)
+            self.say("Sorry, service `%s` is not locked." % service, message=message)
             return
 
         self.say("@all, @%s unlock service %s" % (message.sender.name, service), message=message)
